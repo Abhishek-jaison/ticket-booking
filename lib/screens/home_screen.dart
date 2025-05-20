@@ -55,28 +55,28 @@ class HomeScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildSectionHeader(
-                  context,
-                  'Trending',
-                  'Most popular events right now',
-                ),
-                _buildHorizontalEventList(
-                  context,
-                  eventProvider.events,
-                  height: 250,
-                  isRectangular: true,
-                ),
-                _buildSectionHeader(
-                  context,
-                  'Made for You',
-                  'Based on your interests',
-                ),
-                _buildHorizontalEventList(
-                  context,
-                  eventProvider.events.reversed.toList(),
-                  height: 250,
-                  isRectangular: false,
-                ),
+                // _buildSectionHeader(
+                //   context,
+                //   'Trending',
+                //   'Most popular events right now',
+                // ),
+                // _buildHorizontalEventList(
+                //   context,
+                //   eventProvider.events,
+                //   height: 250,
+                //   isRectangular: true,
+                // ),
+                // _buildSectionHeader(
+                //   context,
+                //   'Made for You',
+                //   'Based on your interests',
+                // ),
+                // _buildHorizontalEventList(
+                //   context,
+                //   eventProvider.events.reversed.toList(),
+                //   height: 250,
+                //   isRectangular: false,
+                // ),
                 _buildSectionHeader(
                   context,
                   'All Events',

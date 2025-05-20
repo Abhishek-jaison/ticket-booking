@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:event_ticket/providers/event_provider.dart';
-import 'package:event_ticket/screens/main_screen.dart';
+import 'package:event_ticket/providers/auth_provider.dart';
+import 'package:event_ticket/screens/splash_screen.dart';
 import 'package:event_ticket/theme/app_theme.dart';
 
 void main() {
@@ -13,12 +14,15 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (context) => EventProvider(),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => EventProvider()),
+        ChangeNotifierProvider(create: (_) => AuthProvider()),
+      ],
       child: MaterialApp(
         title: 'Event Ticket',
         theme: AppTheme.darkTheme,
-        home: const MainScreen(),
+        home: const SplashScreen(),
         debugShowCheckedModeBanner: false,
       ),
     );
