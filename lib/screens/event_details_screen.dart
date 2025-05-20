@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:event_ticket/providers/event_provider.dart';
-import 'package:event_ticket/theme/app_theme.dart';
+import '../providers/events_provider.dart';
+import '../models/event.dart';
+import '../theme/app_theme.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
 class EventDetailsScreen extends StatelessWidget {
@@ -16,24 +17,12 @@ class EventDetailsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<EventProvider>(
-      builder: (context, eventProvider, child) {
-        final event = eventProvider.getEventById(eventId);
-        if (event == null) {
-          return Scaffold(
-            backgroundColor: AppTheme.darkBackground,
-            appBar: AppBar(
-              title: const Text('Event Details'),
-              backgroundColor: AppTheme.darkGrey,
-            ),
-            body: const Center(
-              child: Text(
-                'Event not found',
-                style: TextStyle(color: Colors.white),
-              ),
-            ),
-          );
-        }
+    return Consumer<EventsProvider>(
+      builder: (context, eventsProvider, child) {
+        final event = eventsProvider.events.firstWhere(
+          (e) => e.id == eventId,
+          orElse: () => throw Exception('Event not found'),
+        );
 
         return Scaffold(
           backgroundColor: AppTheme.darkBackground,
@@ -46,29 +35,30 @@ class EventDetailsScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 // Event Image
-                AspectRatio(
-                  aspectRatio: 16 / 9,
-                  child: CachedNetworkImage(
-                    imageUrl: event.imageUrl,
-                    fit: BoxFit.cover,
-                    placeholder: (context, url) => Container(
-                      color: AppTheme.darkGrey,
-                      child: const Center(
-                        child: CircularProgressIndicator(
-                          color: AppTheme.neonYellow,
+                if (event.image != null)
+                  AspectRatio(
+                    aspectRatio: 16 / 9,
+                    child: CachedNetworkImage(
+                      imageUrl: event.image!,
+                      fit: BoxFit.cover,
+                      placeholder: (context, url) => Container(
+                        color: AppTheme.darkGrey,
+                        child: const Center(
+                          child: CircularProgressIndicator(
+                            color: AppTheme.neonYellow,
+                          ),
+                        ),
+                      ),
+                      errorWidget: (context, url, error) => Container(
+                        color: AppTheme.darkGrey,
+                        child: const Icon(
+                          Icons.error_outline,
+                          color: Colors.white,
+                          size: 48,
                         ),
                       ),
                     ),
-                    errorWidget: (context, url, error) => Container(
-                      color: AppTheme.darkGrey,
-                      child: const Icon(
-                        Icons.error_outline,
-                        color: Colors.white,
-                        size: 48,
-                      ),
-                    ),
                   ),
-                ),
                 // Event Details
                 Padding(
                   padding: const EdgeInsets.all(16),
@@ -76,7 +66,7 @@ class EventDetailsScreen extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        event.name,
+                        event.title,
                         style: Theme.of(context)
                             .textTheme
                             .headlineMedium
@@ -90,59 +80,37 @@ class EventDetailsScreen extends StatelessWidget {
                         context,
                         icon: Icons.calendar_today,
                         label: 'Date',
-                        value: event.date,
+                        value: event.formattedDate,
                       ),
                       const SizedBox(height: 12),
                       _buildDetailRow(
                         context,
                         icon: Icons.location_on,
                         label: 'Venue',
-                        value: event.venue,
+                        value: event.location,
                       ),
                       const SizedBox(height: 12),
                       _buildDetailRow(
                         context,
                         icon: Icons.access_time,
                         label: 'Time',
-                        value: event.time,
+                        value: event.eventTime,
                       ),
                       const SizedBox(height: 24),
                       // Ticket Details
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: AppTheme.darkGrey,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Ticket Details',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .titleLarge
-                                  ?.copyWith(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                      Text(
+                        'Ticket Details',
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
                             ),
-                            const SizedBox(height: 16),
-                            _buildDetailRow(
-                              context,
-                              icon: Icons.qr_code,
-                              label: 'Ticket Code',
-                              value: ticketCode,
-                            ),
-                            const SizedBox(height: 12),
-                            _buildDetailRow(
-                              context,
-                              icon: Icons.person,
-                              label: 'Ticket Type',
-                              value: 'General Admission',
-                            ),
-                          ],
-                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      _buildDetailRow(
+                        context,
+                        icon: Icons.qr_code,
+                        label: 'Ticket Code',
+                        value: ticketCode,
                       ),
                     ],
                   ),
@@ -165,8 +133,8 @@ class EventDetailsScreen extends StatelessWidget {
       children: [
         Icon(
           icon,
-          color: AppTheme.neonYellow,
           size: 20,
+          color: AppTheme.neonYellow,
         ),
         const SizedBox(width: 12),
         Expanded(
