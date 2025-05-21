@@ -47,12 +47,27 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
     });
 
     try {
-      // Try to get order details to validate the ticket
-      await _orderService.getOrderDetails(code);
+      // Get order details to validate the ticket
+      final orderDetails = await _orderService.getOrderDetails(code);
 
       if (!mounted) return;
 
-      // If we get here, the ticket is valid
+      // Check if the ticket belongs to the current event
+      if (orderDetails.eventId.toString() != widget.eventId) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('This ticket does not belong to the current event'),
+            backgroundColor: Colors.red,
+            duration: Duration(seconds: 2),
+          ),
+        );
+        setState(() {
+          isProcessing = false;
+        });
+        return;
+      }
+
+      // If we get here, the ticket is valid and belongs to the current event
       setState(() {
         isScanning = false;
       });
