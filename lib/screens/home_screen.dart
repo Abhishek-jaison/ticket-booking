@@ -164,7 +164,10 @@ class EventCard extends StatelessWidget {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => QRScannerScreen(eventId: event.id),
+            builder: (context) => QRScannerScreen(
+              eventId: event.id,
+              eventTitle: event.title,
+            ),
           ),
         );
       },
