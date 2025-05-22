@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:event_ticket/screens/home_screen.dart';
-import 'package:event_ticket/screens/events_screen.dart';
-import 'package:event_ticket/screens/trending_screen.dart';
 import 'package:event_ticket/screens/profile_screen.dart';
 import 'package:event_ticket/widgets/custom_bottom_nav.dart';
 import 'package:event_ticket/theme/app_theme.dart';
@@ -18,8 +16,6 @@ class _MainScreenState extends State<MainScreen> {
 
   final List<Widget> _screens = [
     const HomeScreen(),
-    const EventsScreen(),
-    const TrendingScreen(),
     const ProfileScreen(),
   ];
 

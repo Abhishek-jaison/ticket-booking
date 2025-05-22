@@ -67,7 +67,7 @@ class ProfileScreen extends StatelessWidget {
             const SizedBox(height: 16),
             // Name
             Text(
-              'Abhi',
+              'User',
               style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,

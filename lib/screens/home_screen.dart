@@ -11,8 +11,26 @@ import 'package:shimmer/shimmer.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../theme/app_theme.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // Fetch events when the screen is first loaded
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      if (authProvider.token != null) {
+        Provider.of<EventsProvider>(context, listen: false)
+            .fetchEvents(authProvider.token!);
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -22,33 +40,31 @@ class HomeScreen extends StatelessWidget {
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Hai, Abhi'),
-            Text(
-              'Discover amazing events',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: AppTheme.sectionSubtitleColor,
-                  ),
+            _buildSectionHeader(
+              context,
+              'All Events',
+              'Discover more events',
             ),
           ],
         ),
         backgroundColor: AppTheme.darkGrey,
         actions: [
-          IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(builder: (context) => const TicketQRScreen()),
-              );
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.qr_code_scanner),
-            onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(builder: (context) => const ScannerScreen()),
-              );
-            },
-          ),
+          // IconButton(
+          //   icon: const Icon(Icons.add),
+          //   onPressed: () {
+          //     Navigator.of(context).push(
+          //       MaterialPageRoute(builder: (context) => const TicketQRScreen()),
+          //     );
+          //   },
+          // ),
+          // IconButton(
+          //   icon: const Icon(Icons.qr_code_scanner),
+          //   onPressed: () {
+          //     Navigator.of(context).push(
+          //       MaterialPageRoute(builder: (context) => const ScannerScreen()),
+          //     );
+          //   },
+          // ),
         ],
       ),
       body: Consumer<EventsProvider>(
@@ -99,11 +115,6 @@ class HomeScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildSectionHeader(
-                  context,
-                  'All Events',
-                  'Discover more events',
-                ),
                 ListView.builder(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
