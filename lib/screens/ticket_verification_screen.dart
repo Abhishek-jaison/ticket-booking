@@ -59,12 +59,7 @@ class _TicketVerificationScreenState extends State<TicketVerificationScreen> {
         // Return to scanner screen after a short delay
         Future.delayed(const Duration(milliseconds: 800), () {
           if (!mounted) return;
-          // Pop until we reach the scanner screen
-          Navigator.of(context).popUntil((route) {
-            return route.settings.name == '/scanner' ||
-                route.settings.name ==
-                    null; // Fallback to pop if no named route
-          });
+          Navigator.of(context).pop(); // Simply pop back to scanner screen
         });
       } else {
         if (!mounted) return;
