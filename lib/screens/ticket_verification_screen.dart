@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/order_details.dart';
 import '../services/order_service.dart';
+import '../theme/app_theme.dart';
 
 class TicketVerificationScreen extends StatefulWidget {
   final String trackingNumber;
@@ -38,28 +39,56 @@ class _TicketVerificationScreenState extends State<TicketVerificationScreen> {
     });
 
     try {
-      final success = await _orderService.verifyTicket(widget.trackingNumber);
+      final success =
+          await _orderService.updateScanCount(widget.trackingNumber);
       if (success) {
         setState(() {
           _isVerified = true;
         });
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Ticket verified successfully!')),
-        );
-      } else {
+        if (!mounted) return;
+
+        // Show success message
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-              content: Text('Failed to verify ticket. Please try again.')),
+            content: Text('Ticket verified successfully!'),
+            backgroundColor: Colors.green,
+            duration: Duration(seconds: 1),
+          ),
+        );
+
+        // Return to scanner screen after a short delay
+        Future.delayed(const Duration(milliseconds: 800), () {
+          if (!mounted) return;
+          // Pop until we reach the scanner screen
+          Navigator.of(context).popUntil((route) {
+            return route.settings.name == '/scanner' ||
+                route.settings.name ==
+                    null; // Fallback to pop if no named route
+          });
+        });
+      } else {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Failed to verify ticket. Please try again.'),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: ${e.toString()}')),
+        SnackBar(
+          content: Text('Error: ${e.toString()}'),
+          backgroundColor: Colors.red,
+        ),
       );
     } finally {
-      setState(() {
-        _isVerifying = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isVerifying = false;
+        });
+      }
     }
   }
 
@@ -68,7 +97,9 @@ class _TicketVerificationScreenState extends State<TicketVerificationScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Ticket Verification'),
+        backgroundColor: AppTheme.darkGrey,
       ),
+      backgroundColor: AppTheme.darkBackground,
       body: FutureBuilder<OrderDetails>(
         future: _orderDetailsFuture,
         builder: (context, snapshot) {
@@ -98,6 +129,7 @@ class _TicketVerificationScreenState extends State<TicketVerificationScreen> {
           }
 
           final orderDetails = snapshot.data!;
+          final bool isReVerification = orderDetails.scanCount > 0;
 
           return SingleChildScrollView(
             padding: const EdgeInsets.all(16),
@@ -105,6 +137,7 @@ class _TicketVerificationScreenState extends State<TicketVerificationScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Card(
+                  color: AppTheme.darkGrey,
                   child: Padding(
                     padding: const EdgeInsets.all(16),
                     child: Column(
@@ -112,12 +145,19 @@ class _TicketVerificationScreenState extends State<TicketVerificationScreen> {
                       children: [
                         Text(
                           widget.eventTitle,
-                          style: Theme.of(context).textTheme.headlineSmall,
+                          style:
+                              Theme.of(context).textTheme.titleLarge?.copyWith(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          'Ticket #${orderDetails.trackingNumber}',
-                          style: Theme.of(context).textTheme.titleMedium,
+                          'Tracking Number: ${widget.trackingNumber}',
+                          style:
+                              Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    color: Colors.grey,
+                                  ),
                         ),
                       ],
                     ),
@@ -125,6 +165,7 @@ class _TicketVerificationScreenState extends State<TicketVerificationScreen> {
                 ),
                 const SizedBox(height: 16),
                 Card(
+                  color: AppTheme.darkGrey,
                   child: Padding(
                     padding: const EdgeInsets.all(16),
                     child: Column(
@@ -156,25 +197,40 @@ class _TicketVerificationScreenState extends State<TicketVerificationScreen> {
                       onPressed: _isVerifying ? null : _verifyTicket,
                       style: ElevatedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 16),
+                        backgroundColor: isReVerification
+                            ? Colors.orange
+                            : AppTheme.neonYellow,
                       ),
                       child: _isVerifying
                           ? const CircularProgressIndicator()
-                          : const Text('Verify Ticket'),
+                          : Text(
+                              isReVerification
+                                  ? 'Re-verify Ticket'
+                                  : 'Verify Ticket',
+                              style: TextStyle(
+                                color: isReVerification
+                                    ? Colors.white
+                                    : Colors.black,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                     ),
                   )
                 else
-                  const Card(
+                  Card(
                     color: Colors.green,
                     child: Padding(
-                      padding: EdgeInsets.all(16),
+                      padding: const EdgeInsets.all(16),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.check_circle, color: Colors.white),
-                          SizedBox(width: 8),
+                          const Icon(Icons.check_circle, color: Colors.white),
+                          const SizedBox(width: 8),
                           Text(
-                            'Ticket Verified',
-                            style: TextStyle(
+                            isReVerification
+                                ? 'Ticket Re-verified'
+                                : 'Ticket Verified',
+                            style: const TextStyle(
                               color: Colors.white,
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
@@ -194,21 +250,27 @@ class _TicketVerificationScreenState extends State<TicketVerificationScreen> {
 
   Widget _buildInfoRow(String label, String value) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
+      padding: const EdgeInsets.only(bottom: 12),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            label,
-            style: const TextStyle(
-              color: Colors.grey,
-              fontWeight: FontWeight.w500,
+          SizedBox(
+            width: 120,
+            child: Text(
+              label,
+              style: const TextStyle(
+                color: Colors.grey,
+                fontSize: 14,
+              ),
             ),
           ),
-          Text(
-            value,
-            style: const TextStyle(
-              fontWeight: FontWeight.w500,
+          Expanded(
+            child: Text(
+              value,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 14,
+              ),
             ),
           ),
         ],

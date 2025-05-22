@@ -59,4 +59,25 @@ class OrderService {
       throw Exception('Failed to verify ticket: $e');
     }
   }
+
+  Future<bool> updateScanCount(String trackingNumber) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/orders/update-scan-count'),
+        headers: _headers,
+        body: json.encode({'tracking_number': trackingNumber}),
+      );
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> jsonResponse = json.decode(response.body);
+        return jsonResponse['status'] == 'success';
+      } else if (response.statusCode == 401) {
+        throw Exception('Unauthorized: Invalid or expired token');
+      } else {
+        throw Exception('Failed to update scan count: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Failed to update scan count: $e');
+    }
+  }
 }

@@ -73,7 +73,7 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
       });
 
       // Navigate to verification screen
-      Navigator.pushReplacement(
+      Navigator.push(
         context,
         MaterialPageRoute(
           builder: (context) => TicketVerificationScreen(
@@ -82,7 +82,15 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
             bearerToken: _orderService.bearerToken,
           ),
         ),
-      );
+      ).then((_) {
+        // Reset states when returning from verification screen
+        if (mounted) {
+          setState(() {
+            isScanning = true;
+            isProcessing = false;
+          });
+        }
+      });
     } catch (e) {
       if (!mounted) return;
 
